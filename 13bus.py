@@ -1,3 +1,7 @@
+# Kevin Moy, 7/24/2020
+# Modified from an example in the OpenDSS Python documentation
+# Uses IEEE 13-bus system to scale loads, demonstrate voltage change when loads are disconnected
+
 import win32com.client
 # ****************************************************
 # * Initialize OpenDSS
@@ -41,7 +45,7 @@ else:
     print("The Circuit Did Not Solve Successfully")
 
 
-# Model effects of opening a line 30 seconds into a simulation
+# Model effects of disconnecting a load 30 seconds into a simulation
 DSSText.Command = "New Monitor.Mon1 element=Line.692675 mode=0"
 DSSSolution.StepSize = 1 # Set step size to 1 sec
 DSSSolution.Number = 30 # Solve 30 seconds of the simulation
