@@ -20,22 +20,43 @@ DSSSolution = DSSCircuit.Solution
 # Load in an example circuit
 DSSText.Command = r"Compile 'C:\Program Files\OpenDSS\IEEETestCases\13Bus\IEEE13Nodeckt.dss'"
 
-# Step through every load and scale it up
-iLoads = DSSCircuit.Loads.First
-while iLoads:
-    # Scale load by 120%
-    DSSCircuit.Loads.kW = DSSCircuit.Loads.kW * 2.0
-    # Move to next load
-    iLoads = DSSCircuit.Loads.Next
-# # Set a capacitor's rated kVAR to 1200
-# DSSCircuit.SetActiveElement("Capacitor.C83")
-# DSSCircuit.ActiveDSSElement.Properties("kVAR").Val = 1200
-# # Get bus voltages
-BusNames = DSSCircuit.AllBusNames
-Voltages = DSSCircuit.AllBusVmagPu
-
+# # Step through every load and scale it up
+# iLoads = DSSCircuit.Loads.First
+# while iLoads:
+#     # Scale load by 120%
+#     DSSCircuit.Loads.kW = DSSCircuit.Loads.kW * 2.0
+#     # Move to next load
+#     iLoads = DSSCircuit.Loads.Next
+# # # Set a capacitor's rated kVAR to 1200
+# # DSSCircuit.SetActiveElement("Capacitor.C83")
+# # DSSCircuit.ActiveDSSElement.Properties("kVAR").Val = 1200
+# # # Get bus voltages
+# BusNames = DSSCircuit.AllBusNames
+# Voltages = DSSCircuit.AllBusVmagPu
 # # See what an arbitrary bus's voltage is
 # print(BusNames[10] + "'s voltage mag in per unit is: " + str(Voltages[10]))
+
+# Get tuple of all loads and their buses
+loadbus = []
+loadNames = DSSCircuit.Loads.AllNames
+# Or array for literally each connection between bus terminal and load:
+for load in loadNames:
+    DSSCircuit.SetActiveElement("Load." + load)
+    # Get bus of load
+    bus = DSSCircuit.ActiveDSSElement.Properties("bus1").Val
+    loadbus.append([load, bus])
+
+# Get array of all capacitors and their buses
+capbus = []
+capNames = DSSCircuit.Capacitors.AllNames
+# Or array for literally each connection between bus terminal and load:
+for cap in capNames:
+    DSSCircuit.SetActiveElement("Capacitor." + cap)
+    # Get bus of load
+    bus = DSSCircuit.ActiveDSSElement.Properties("bus1").Val
+    capbus.append([cap, bus])
+
+# Etc. etc. for other elements (switches, generators, transformers, etc.)
 
 # Solve the Circuit
 DSSSolution.Solve()
@@ -44,8 +65,8 @@ if DSSSolution.Converged:
 else:
     print("The Circuit Did Not Solve Successfully")
 
+# ----- Model effects of disconnecting a load 30 seconds into a simulation -----
 
-# Model effects of disconnecting a load 30 seconds into a simulation
 DSSText.Command = "New Monitor.Mon1 element=Line.692675 mode=0"
 DSSSolution.StepSize = 1 # Set step size to 1 sec
 DSSSolution.Number = 30 # Solve 30 seconds of the simulation
@@ -67,23 +88,34 @@ DSSSolution.Solve()
 
 print("Seconds Elapsed: " + str(DSSSolution.Seconds))
 # Plot the voltage for the 60 seconds of simulation
-DSSText.Command = "Plot monitor object=Mon1 Channels=(1,3)"
+DSSText.Command = "Plot monitor object=Mon1 Channels=(1,3,5)" # Line voltage should increase, as expected
 
-# Line voltage should increase, as expected
-
+# ----- PLOTTING ----- #
 # From IEEE123 test case in OpenDSS, "CircuitPlottingScripts.dss"
 # These settings make a more interesting voltage plot since the voltages are generally OK for this case
 # Voltages above     1.02            will be BLUE
 # Voltages between   0.97 and 1.02   will be GREEN
 # Voltages below     0.97            will be RED
 # These are the default colors for the voltage plot
+DSSText.Command = "Set normvminpu=1.05"
+DSSText.Command = "Set emergvminpu=0.95"
+
+# Mark transformers, switches, and capacitors
 DSSText.Command = "Set markTransformers=yes"
+DSSText.Command = "Set Transmarkersize=3"
 DSSText.Command = "Set markSwitches=yes"
-DSSText.Command = "Set normvminpu=1.02"
-DSSText.Command = "Set emergvminpu=0.97"
+DSSText.Command = "Set markCapacitors=yes"
+DSSText.Command = "Set Capmarkersize=3"
+
+# Plot!
 DSSText.Command = "Plot circuit voltage dots=y labels=y"
 
-# Export voltage to a csv file
+# ----- EXPORTING RESULTS ----- #
+# Export voltage to a csv file in a particular directory
+DSSText.Command = r"Set datapath = 'C:\Users\kmoy1\PycharmProjects\smart-rl-mg'"  # Set to your own filepath!
 DSSText.Command = "Export Voltages"
 Filename = DSSText.Result
 print("File saved to: " + Filename)
+
+VoltageMags = DSSCircuit.AllBusVmagPu
+print(VoltageMags)
