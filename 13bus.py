@@ -119,3 +119,5 @@ print("File saved to: " + Filename)
 
 VoltageMags = DSSCircuit.AllBusVmagPu
 print(VoltageMags)
+
+# TODO: Try manually controlling capacitor banks to see if desired output is achieved
