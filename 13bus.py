@@ -60,10 +60,6 @@ for cap in capNames:
 
 # Solve the Circuit
 DSSSolution.Solve()
-if DSSSolution.Converged:
-    print("The Circuit Solved Successfully")
-else:
-    print("The Circuit Did Not Solve Successfully")
 
 # ----- Model effects of disconnecting a load 30 seconds into a simulation -----
 
@@ -72,19 +68,31 @@ DSSSolution.StepSize = 1 # Set step size to 1 sec
 DSSSolution.Number = 30 # Solve 30 seconds of the simulation
 # Set the solution mode to duty cycle, forcing loads to use their "duty cycle" loadshape, allowing time based simulation
 DSSSolution.Mode = 6 # Code for duty cycle mode
+# DSSText.Command = "Set Mode=Dutycycle" # More readable than above
 
 # Solve for initial condition (first 30 seconds)
 DSSSolution.Solve()
 
 # Disconnect load at bus 671 from circuit
-DSSText.Command = "Open Load.671"  # not sure why this doesn't work with ' DSSCircuit.Disable("Load.671") ' ?
+DSSCircuit.SetActiveElement("Load.671")
+DSSCircuit.ActiveDSSElement.Properties("kW").Val = 2000  # try changing to 1000, 3000
+# DSSText.Command = "Open Load.671"  # not sure why this doesn't work with ' DSSCircuit.Disable("Load.671") ' ?
 
-# Alternatively: Open line between bus 692 and bus 675
+# Activate capacitor bank at bus 675 (cap1)
+# Set a capacitor's rated kVAR to 1200
+DSSCircuit.SetActiveElement("Capacitor.Cap1")
+DSSCircuit.ActiveDSSElement.Properties("kVAR").Val = 1000  # try changing to 1500, 2000
+DSSCircuit.Enable("Cap1")
+# # Alternatively: Open line between bus 692 and bus 675
 # DSSText.Command = "Open Line.684611"
 
 # Solve another 30 seconds of simulation
 DSSSolution.Number = 30
 DSSSolution.Solve()
+if DSSSolution.Converged:
+    print("The Circuit Solved Successfully")
+else:
+    print("The Circuit Did Not Solve Successfully")
 
 print("Seconds Elapsed: " + str(DSSSolution.Seconds))
 # Plot the voltage for the 60 seconds of simulation
@@ -100,7 +108,7 @@ DSSText.Command = "Plot monitor object=Mon1 Channels=(1,3,5)" # Line voltage sho
 DSSText.Command = "Set normvminpu=1.05"
 DSSText.Command = "Set emergvminpu=0.95"
 
-# Mark transformers, switches, and capacitors
+# # Mark transformers, switches, and capacitors
 DSSText.Command = "Set markTransformers=yes"
 DSSText.Command = "Set Transmarkersize=3"
 DSSText.Command = "Set markSwitches=yes"
