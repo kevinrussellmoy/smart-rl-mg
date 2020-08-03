@@ -10,7 +10,7 @@ import win32com.client
 try:
     DSSObj = win32com.client.Dispatch("OpenDSSEngine.DSS")
 except:
-    print ("Unable to start the OpenDSS Engine")
+    print("Unable to start the OpenDSS Engine")
     raise SystemExit
 # Set up the Text, Circuit, and Solution Interfaces
 DSSText = DSSObj.Text
@@ -19,22 +19,6 @@ DSSSolution = DSSCircuit.Solution
 
 # Load in an example circuit
 DSSText.Command = r"Compile 'C:\Program Files\OpenDSS\IEEETestCases\13Bus\IEEE13Nodeckt.dss'"
-
-# # Step through every load and scale it up
-# iLoads = DSSCircuit.Loads.First
-# while iLoads:
-#     # Scale load by 120%
-#     DSSCircuit.Loads.kW = DSSCircuit.Loads.kW * 2.0
-#     # Move to next load
-#     iLoads = DSSCircuit.Loads.Next
-# # # Set a capacitor's rated kVAR to 1200
-# # DSSCircuit.SetActiveElement("Capacitor.C83")
-# # DSSCircuit.ActiveDSSElement.Properties("kVAR").Val = 1200
-# # # Get bus voltages
-# BusNames = DSSCircuit.AllBusNames
-# Voltages = DSSCircuit.AllBusVmagPu
-# # See what an arbitrary bus's voltage is
-# print(BusNames[10] + "'s voltage mag in per unit is: " + str(Voltages[10]))
 
 # Get tuple of all loads and their buses
 loadbus = []
@@ -61,30 +45,37 @@ for cap in capNames:
 # Solve the Circuit
 DSSSolution.Solve()
 
-# ----- Model effects of disconnecting a load 30 seconds into a simulation -----
+# ----- Model effects of altering a load 30 seconds into a simulation -----
+
+# Disable voltage regulators
+DSSText.Command = "Disable regcontrol.Reg1"
+DSSText.Command = "Disable regcontrol.Reg2"
+DSSText.Command = "Disable regcontrol.Reg3"
 
 DSSText.Command = "New Monitor.Mon1 element=Line.692675 mode=0"
-DSSSolution.StepSize = 1 # Set step size to 1 sec
-DSSSolution.Number = 30 # Solve 30 seconds of the simulation
+DSSSolution.StepSize = 1  # Set step size to 1 sec
+DSSSolution.Number = 30  # Solve 30 seconds of the simulation
 # Set the solution mode to duty cycle, forcing loads to use their "duty cycle" loadshape, allowing time based simulation
-DSSSolution.Mode = 6 # Code for duty cycle mode
+DSSSolution.Mode = 6  # Code for duty cycle mode
 # DSSText.Command = "Set Mode=Dutycycle" # More readable than above
 
 # Solve for initial condition (first 30 seconds)
 DSSSolution.Solve()
 
-# Disconnect load at bus 671 from circuit
+# Increase load at bus 671 to set kW
 DSSCircuit.SetActiveElement("Load.671")
 DSSCircuit.ActiveDSSElement.Properties("kW").Val = 2000  # try changing to 1000, 3000
+# # Disconnect load at bus 671 from circuit
 # DSSText.Command = "Open Load.671"  # not sure why this doesn't work with ' DSSCircuit.Disable("Load.671") ' ?
+# # Alternatively: Open line between bus 692 and bus 675
+# DSSText.Command = "Open Line.684611"
 
 # Activate capacitor bank at bus 675 (cap1)
 # Set a capacitor's rated kVAR to 1200
 DSSCircuit.SetActiveElement("Capacitor.Cap1")
-DSSCircuit.ActiveDSSElement.Properties("kVAR").Val = 1000  # try changing to 1500, 2000
+DSSCircuit.ActiveDSSElement.Properties("kVAR").Val = 1500  # try changing to 1500, 2000
 DSSCircuit.Enable("Cap1")
-# # Alternatively: Open line between bus 692 and bus 675
-# DSSText.Command = "Open Line.684611"
+
 
 # Solve another 30 seconds of simulation
 DSSSolution.Number = 30
@@ -126,6 +117,4 @@ Filename = DSSText.Result
 print("File saved to: " + Filename)
 
 VoltageMags = DSSCircuit.AllBusVmagPu
-print(VoltageMags)
-
-# TODO: Try manually controlling capacitor banks to see if desired output is achieved
+# print(VoltageMags)
