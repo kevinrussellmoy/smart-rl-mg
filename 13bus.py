@@ -46,9 +46,7 @@ for cap in capNames:
 # Solve the Circuit
 DSSSolution.Solve()
 
-<<<<<<< HEAD
 # Model effects of disconnecting a load 30 seconds into a simulation
-=======
 # ----- Model effects of altering a load 30 seconds into a simulation -----
 
 # Disable voltage regulators
@@ -56,16 +54,14 @@ DSSText.Command = "Disable regcontrol.Reg1"
 DSSText.Command = "Disable regcontrol.Reg2"
 DSSText.Command = "Disable regcontrol.Reg3"
 
->>>>>>> origin
 DSSText.Command = "New Monitor.Mon1 element=Line.692675 mode=0"
 DSSSolution.StepSize = 1  # Set step size to 1 sec
 DSSSolution.Number = 30  # Solve 30 seconds of the simulation
 # Set the solution mode to duty cycle, forcing loads to use their "duty cycle" loadshape, allowing time based simulation
 DSSSolution.Mode = 6  # Code for duty cycle mode
-<<<<<<< HEAD
-=======
+
 # DSSText.Command = "Set Mode=Dutycycle" # More readable than above
->>>>>>> origin
+
 
 # Solve for initial condition (first 30 seconds)
 DSSSolution.Solve()
@@ -84,7 +80,6 @@ DSSCircuit.SetActiveElement("Capacitor.Cap1")
 DSSCircuit.ActiveDSSElement.Properties("kVAR").Val = 1500  # try changing to 1500, 2000
 DSSCircuit.Enable("Cap1")
 
-
 # Solve another 30 seconds of simulation
 DSSSolution.Number = 30
 DSSSolution.Solve()
@@ -95,7 +90,7 @@ else:
 
 print("Seconds Elapsed: " + str(DSSSolution.Seconds))
 # Plot the voltage for the 60 seconds of simulation
-DSSText.Command = "Plot monitor object=Mon1 Channels=(1,3,5)" # Line voltage should increase, as expected
+DSSText.Command = "Plot monitor object=Mon1 Channels=(1,3,5)"  # Line voltage should increase, as expected
 
 # ----- PLOTTING ----- #
 # From IEEE123 test case in OpenDSS, "CircuitPlottingScripts.dss"
