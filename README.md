@@ -2,4 +2,7 @@
 Reinforcement Learning + Microgrids for OpenDSS with the Stanford Microgrid Analysis and Research Training internship
 
 Requires OpenDSS and the use of the Python-OpenDSS COM interface.
-Will require RL framework (TBD, but likely OpenAI-gym
+
+Requires deep RL framework: OpenAI stable-baselines, gym
+
+Requires NN framework: TensorFlow
