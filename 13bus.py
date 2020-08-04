@@ -3,6 +3,7 @@
 # Uses IEEE 13-bus system to scale loads, demonstrate voltage change when loads are disconnected
 
 import win32com.client
+
 # ****************************************************
 # * Initialize OpenDSS
 # ****************************************************
@@ -10,7 +11,7 @@ import win32com.client
 try:
     DSSObj = win32com.client.Dispatch("OpenDSSEngine.DSS")
 except:
-    print ("Unable to start the OpenDSS Engine")
+    print("Unable to start the OpenDSS Engine")
     raise SystemExit
 # Set up the Text, Circuit, and Solution Interfaces
 DSSText = DSSObj.Text
@@ -44,13 +45,12 @@ if DSSSolution.Converged:
 else:
     print("The Circuit Did Not Solve Successfully")
 
-
 # Model effects of disconnecting a load 30 seconds into a simulation
 DSSText.Command = "New Monitor.Mon1 element=Line.692675 mode=0"
-DSSSolution.StepSize = 1 # Set step size to 1 sec
-DSSSolution.Number = 30 # Solve 30 seconds of the simulation
+DSSSolution.StepSize = 1  # Set step size to 1 sec
+DSSSolution.Number = 30  # Solve 30 seconds of the simulation
 # Set the solution mode to duty cycle, forcing loads to use their "duty cycle" loadshape, allowing time based simulation
-DSSSolution.Mode = 6 # Code for duty cycle mode
+DSSSolution.Mode = 6  # Code for duty cycle mode
 
 # Solve for initial condition (first 30 seconds)
 DSSSolution.Solve()
