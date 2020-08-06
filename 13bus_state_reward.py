@@ -29,6 +29,8 @@ def get_state(DSSCircuit):
 
 def calc_reward(sts):
     # Calculate reward from states (bus voltages)
+    # sts: NumPy array of voltages for each bus as the state vector
+    # Returns: single floating-point number as reward
 
     # Number of buses in voltage zone 1
     num_zone1 = np.size(np.nonzero(np.logical_and(sts >= ZONE1_UB, sts < ZONE2_UB)))\
