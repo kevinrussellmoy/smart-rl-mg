@@ -10,7 +10,7 @@ from generate_state_space import load_states
 
 currentDirectory = os.getcwd()  # Will switch to OpenDSS directory after OpenDSS Object is instantiated!
 
-MAX_NUM_CONFIG = 20
+MAX_NUM_CONFIG = 30
 MIN_BUS_VOLT = 0.8
 MAX_BUS_VOLT = 1.2
 
@@ -35,7 +35,7 @@ DSSText.Command = "Disable regcontrol.Reg1"
 DSSText.Command = "Disable regcontrol.Reg2"
 DSSText.Command = "Disable regcontrol.Reg3"
 
-loadNames = DSSCircuit.Loads.AllNames
+loadNames = np.array(DSSCircuit.Loads.AllNames)
 loadKwdf = pd.DataFrame(loadNames)
 
 numConfig = 0
@@ -44,13 +44,8 @@ while numConfig < MAX_NUM_CONFIG:
     loadKws = load_states(loadNames, DSSCircuit, DSSSolution)
 
     if loadKws is not None:
-        print("Voltages within acceptable range")
         loadKwdf[numConfig+1] = loadKws
         numConfig += 1
-    else:
-        print("Voltages not within acceptable range [" + str(MIN_BUS_VOLT) + ", " + str(MAX_BUS_VOLT) +
-              "] p.u., not saving")
-
     iters += 1
 
 print("\nLoad configurations complete")
