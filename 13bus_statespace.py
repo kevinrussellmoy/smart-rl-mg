@@ -44,13 +44,8 @@ while numConfig < MAX_NUM_CONFIG:
     loadKws = load_states(loadNames, DSSCircuit, DSSSolution)
 
     if loadKws is not None:
-        # print("Voltages within acceptable range")
         loadKwdf[numConfig+1] = loadKws
         numConfig += 1
-    # else:
-    #     # print("Voltages not within acceptable range [" + str(MIN_BUS_VOLT) + ", " + str(MAX_BUS_VOLT) +
-    #     #       "] p.u., not saving")
-
     iters += 1
 
 print("\nLoad configurations complete")
