@@ -35,9 +35,7 @@ print(DSSCircuit.AllBusVmagPu)
 loadNames = np.array(DSSCircuit.Loads.AllNames)
 loadKwdf = pd.DataFrame(loadNames)
 
-loadKws = None
-while loadKws is None:
-    loadKws = load_states(loadNames, DSSCircuit, DSSSolution)
+loadKws = load_states(loadNames, DSSCircuit, DSSSolution)
 
 for loadnum in range(np.size(loadNames)):
     DSSCircuit.SetActiveElement("Load." + loadNames[loadnum])

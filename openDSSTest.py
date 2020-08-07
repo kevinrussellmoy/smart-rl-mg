@@ -11,12 +11,12 @@ print("Action space:", env.action_space)
 obs = env.reset()
 
 # Test actions
-nsteps = 10
+nsteps = 100
 for step in range(nsteps):
     print("\nStep: ", step)
     action = env.action_space.sample()
     print("Sampled action:", action)
-    obs, reward= env.step(action)
-    print('obs=', obs)
+    obs, reward = env.step(action)
+    # print('obs=', obs)
     print('reward=', reward)
 
