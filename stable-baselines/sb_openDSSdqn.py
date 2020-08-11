@@ -76,7 +76,7 @@ model.learn(total_timesteps=int(time_steps))
 # Save the agent
 model.save(currentDirectory + "\\opendss")
 
-results_plotter.plot_results([currentDirectory], time_steps, results_plotter.X_TIMESTEPS, "DDPG LunarLander")
+results_plotter.plot_results([currentDirectory], time_steps, results_plotter.X_TIMESTEPS, "DQN IEEE 13-bus")
 plt.show()
 
 # del model  # delete trained model to demonstrate loading
