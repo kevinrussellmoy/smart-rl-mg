@@ -3,6 +3,7 @@ import random
 import gym
 import os
 import matplotlib.pyplot as plt
+import tensorflow as tf
 
 from stable_baselines.common.env_checker import check_env
 from stable_baselines import DQN
@@ -15,6 +16,8 @@ from stable_baselines.common.callbacks import BaseCallback
 
 currentDirectory = os.getcwd()
 
+# Set tensorflow print level
+tf.logging.set_verbosity(tf.logging.ERROR)
 
 class SaveOnBestTrainingRewardCallback(BaseCallback):
     """
@@ -59,6 +62,37 @@ class SaveOnBestTrainingRewardCallback(BaseCallback):
                     self.model.save(self.save_path)
         return True
 
+
+def moving_average(values, window):
+    """
+    Smooth values by doing a moving average
+    :param values: (numpy array)
+    :param window: (int)
+    :return: (numpy array)
+    """
+    weights = np.repeat(1.0, window) / window
+    return np.convolve(values, weights, 'valid')
+
+
+def plot_results(log_folder, title='Learning Curve'):
+    """
+    plot the results
+
+    :param log_folder: (str) the save location of the results to plot
+    :param title: (str) the title of the task to plot
+    """
+    x, y = ts2xy(load_results(log_folder), 'timesteps')
+    y = moving_average(y, window=50)
+    # Truncate x
+    x = x[len(x) - len(y):]
+
+    fig = plt.figure(title)
+    plt.plot(x, y)
+    plt.xlabel('Number of Timesteps')
+    plt.ylabel('Rewards')
+    plt.title(title + " Smoothed")
+    plt.show()
+
 # Create and wrap the environment
 env = gym.make('gym_openDSS:openDSS-v0')
 check_env(env)  # Check env to make sure it conforms to gym requirements
@@ -74,18 +108,20 @@ callback = SaveOnBestTrainingRewardCallback(check_freq=100, log_dir=currentDirec
 time_steps = 1e4
 model.learn(total_timesteps=int(time_steps))
 # Save the agent
-model.save(currentDirectory + "\\opendss")
+model.save(currentDirectory + "\\opendss_1e4")
 
 results_plotter.plot_results([currentDirectory], time_steps, results_plotter.X_TIMESTEPS, "DQN IEEE 13-bus")
 plt.show()
 
 # del model  # delete trained model to demonstrate loading
-#
-# # Load the trained agent
-# model = DQN.load(currentDirectory + "\\opendss", env)
 
-# # Evaluate the agent
-# mean_reward, std_reward = evaluate_policy(model, model.get_env(), n_eval_episodes=10)
+# Load the trained agent
+model = DQN.load(currentDirectory + "\\opendss_1e4", env)
+
+# Evaluate the agent
+mean_reward, std_reward = evaluate_policy(model, model.get_env(), n_eval_episodes=10)
+
+print("Mean reward, ", mean_reward, " std reward, ", std_reward)
 #
 # # Enjoy trained agent
 # obs = env.reset()
