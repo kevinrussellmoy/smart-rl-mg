@@ -10,7 +10,7 @@ from generate_state_space import load_states
 
 currentDirectory = os.getcwd()  # Will switch to OpenDSS directory after OpenDSS Object is instantiated!
 
-MAX_NUM_CONFIG = 30
+MAX_NUM_CONFIG = 1000
 MIN_BUS_VOLT = 0.8
 MAX_BUS_VOLT = 1.2
 
@@ -51,6 +51,6 @@ while numConfig < MAX_NUM_CONFIG:
 print("\nLoad configurations complete")
 print("Total iterations to reach " + str(MAX_NUM_CONFIG) + ": " + str(iters))
 loadKwdf.set_index(0, inplace=True)
-loadKwdf.to_csv(currentDirectory + "\\loadkW.csv", index_label='Load Name')
-print("\nsaved to "+ currentDirectory + "\\loadkW.csv")
+loadKwdf.to_csv(currentDirectory + "\\loadkW_test.csv", index_label='Load Name')
+print("\nsaved to "+ currentDirectory + "\\loadkW_test.csv")
 

@@ -69,7 +69,7 @@ def load_states(loadNames, DSSCircuit, DSSSolution, min_load=0.5, max_load=3):
 
         if (max(maxVCapOff, maxVCapOn, minVCapOff, minVCapOn) <= MAX_BUS_VOLT) & \
                 (min(maxVCapOff, maxVCapOn, minVCapOff, minVCapOn) >= MIN_BUS_VOLT):
-            print("Voltages within acceptable range")
+            # print("Voltages within acceptable range")
             loadKws = []
             for loadnum in range(np.size(loadNames)):
                 DSSCircuit.SetActiveElement("Load." + loadNames[loadnum])
@@ -79,8 +79,8 @@ def load_states(loadNames, DSSCircuit, DSSSolution, min_load=0.5, max_load=3):
             scale_down(DSSCircuit, randScale)
             return np.array(loadKws)
         else:
-            print("Voltages not within acceptable range [" + str(MIN_BUS_VOLT) + ", " + str(MAX_BUS_VOLT) +
-                  "] p.u., not saving")
+            # print("Voltages not within acceptable range [" + str(MIN_BUS_VOLT) + ", " + str(MAX_BUS_VOLT) +
+            #       "] p.u., not saving")
             scale_down(DSSCircuit, randScale)
 
 
