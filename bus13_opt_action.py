@@ -1,8 +1,13 @@
 # Kevin Moy, 8/6/2020
-# Method to read in action from reinforcement agent and
-# execute capacitor control on OpenDSS IEEE 13-bus
+# Find optimal capacitor control on OpenDSS IEEE 13-bus given a load profile
 
 import win32com.client
+import pandas as pd
+import os
+import numpy as np
+from bus13_state_reward import *
+
+TOTAL_ACTIONS = 4
 
 
 def cap_control(action, DSSCircuit):
@@ -40,3 +45,25 @@ def cap_control(action, DSSCircuit):
         print("Invalid action " + str(action) + ", action in range [0 3] expected")
 
 
+def opt_control(loadNames, loadKws, DSSCircuit, DSSSolution):
+    for loadnum in range(np.size(loadNames)):
+        DSSCircuit.SetActiveElement("Load." + loadNames[loadnum])
+        # Set load with new loadKws
+        DSSCircuit.ActiveDSSElement.Properties("kW").Val = loadKws[loadnum]
+
+    # Get action with lowest reward
+    opt_reward = -np.Inf
+    opt_action = -np.Inf
+    for action in range(TOTAL_ACTIONS):
+        cap_control(action, DSSCircuit)
+        DSSSolution.solve()
+        observation = get_state(DSSCircuit)
+        reward = quad_reward(observation)
+        print("action=", action)
+        print('reward=', reward)
+        if reward > opt_reward:
+            opt_action = action
+            opt_reward = reward
+    print("opt action = ", opt_action)
+    print("opt reward = ", opt_reward)
+    return opt_action, opt_reward

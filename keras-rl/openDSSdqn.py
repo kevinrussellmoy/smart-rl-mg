@@ -3,6 +3,7 @@ import random
 
 import gym
 
+
 from tensorflow.keras import Model, Sequential
 from tensorflow.keras.layers import Dense, Flatten, Reshape, Activation
 from tensorflow.keras.optimizers import Adam
@@ -25,8 +26,8 @@ print(model.summary())
 #
 policy = EpsGreedyQPolicy()
 memory = SequentialMemory(limit=50000, window_length=1)
-dqn = DQNAgent(model=model, nb_actions=env.action_space.n, memory=memory, nb_steps_warmup=10,
+dqn = DQNAgent(model=model, nb_actions=env.action_space.n, memory=memory, nb_steps_warmup=500,
                target_model_update=1e-2, policy=policy)
-dqn.compile(Adam(lr=1e-3), metrics=['mae'])
+dqn.compile(Adam(lr=1e-2), metrics=['mae'])
 #
 dqn.fit(env, nb_steps=5000, visualize=True, verbose=2)
