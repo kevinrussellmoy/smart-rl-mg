@@ -18,6 +18,7 @@ for step in range(nsteps):
     action = step
     print("Sampled action:", action)
     obs, reward, done, info = env.step(action)
-    # print('obs=', obs)
+    print('obs=', obs)
     print('reward=', reward)
+    print ('done=', done)
 

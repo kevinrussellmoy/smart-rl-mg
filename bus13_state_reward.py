@@ -4,6 +4,15 @@
 import win32com.client
 import numpy as np
 
+# Width of voltage zone:
+VOLT_ZONE_WIDTH = 0.05
+
+# Width of acceptable voltage:
+VOLT_ACC_WIDTH = 0.1
+
+# Base penalty:
+PENALTY = -200
+
 # Upper and lower bounds of voltage zones:
 ZONE2_UB = 1.10
 ZONE1_UB = 1.05
@@ -12,8 +21,8 @@ ZONE2_LB = 0.90
 
 # Penalties for each zone:
 # TODO: Tune these hyperparameters
-ZONE1_PENALTY = -200
-ZONE2_PENALTY = -400
+ZONE1_PENALTY = PENALTY
+ZONE2_PENALTY = 2 * PENALTY
 
 
 def get_state(DSSCircuit):
@@ -27,8 +36,8 @@ def get_state(DSSCircuit):
     return states
 
 
-def calc_reward(sts):
-    # Calculate reward from states (bus voltages)
+def step_reward(sts):
+    # Calculate step-function reward from states (bus voltages)
     # sts: NumPy array of voltages for each bus as the state vector
     # Returns: single floating-point number as reward
 
@@ -41,5 +50,17 @@ def calc_reward(sts):
                 + np.size(np.nonzero(sts <= ZONE2_LB))
 
     reward = num_zone1*ZONE1_PENALTY + num_zone2*ZONE2_PENALTY
+
+    return reward
+
+
+def quad_reward(sts):
+    # Calculate quadratic reward from states (bus voltages) with deadband in acceptable voltage range
+    # sts: NumPy array of voltages for each bus as the state vector
+    # Returns: single floating-point number as reward
+
+    sts_loss = (PENALTY/VOLT_ZONE_WIDTH**2) * (np.maximum(abs(sts-1)-VOLT_ACC_WIDTH/2, 0))**2
+
+    reward = np.sum(sts_loss)
 
     return reward
