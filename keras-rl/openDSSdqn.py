@@ -3,6 +3,7 @@ import random
 
 import gym
 
+import sys
 
 from tensorflow.keras import Model, Sequential
 from tensorflow.keras.layers import Dense, Flatten, Reshape, Activation
@@ -27,7 +28,11 @@ print(model.summary())
 policy = EpsGreedyQPolicy()
 memory = SequentialMemory(limit=50000, window_length=1)
 dqn = DQNAgent(model=model, nb_actions=env.action_space.n, memory=memory, nb_steps_warmup=500,
-               target_model_update=1e-2, policy=policy)
-dqn.compile(Adam(lr=1e-2), metrics=['mae'])
+               target_model_update=1e-3, policy=policy)
+dqn.compile(Adam(lr=1e-4), metrics=['mae'])
 #
-dqn.fit(env, nb_steps=5000, visualize=True, verbose=2)
+sys.stdout = open("C:/Users/chris/OneDrive/Desktop/Miscellaneous/Bits&Watts/test4.txt", "w")
+dqn.fit(env, nb_steps=1000, visualize=True, verbose=2)
+sys.stdout.close()
+
+
