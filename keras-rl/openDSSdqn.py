@@ -25,14 +25,14 @@ model.add(Dense(env.action_space.n))
 model.add(Activation('linear'))
 print(model.summary())
 #
-policy = EpsGreedyQPolicy()
+policy = EpsGreedyQPolicy(eps=0.05)
 memory = SequentialMemory(limit=50000, window_length=1)
 dqn = DQNAgent(model=model, nb_actions=env.action_space.n, memory=memory, nb_steps_warmup=500,
                target_model_update=1e-3, policy=policy)
 dqn.compile(Adam(lr=1e-4), metrics=['mae'])
 #
-sys.stdout = open("C:/Users/chris/OneDrive/Desktop/Miscellaneous/Bits&Watts/test4.txt", "w")
-dqn.fit(env, nb_steps=1000, visualize=True, verbose=2)
+sys.stdout = open("C:/Users/chris/OneDrive/Desktop/Miscellaneous/Bits&Watts/test7.txt", "w")
+dqn.fit(env, nb_steps=10000, visualize=True, verbose=2)
 sys.stdout.close()
 
 
