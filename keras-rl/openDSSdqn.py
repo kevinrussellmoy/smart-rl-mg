@@ -15,10 +15,8 @@ from keras.callbacks import History
 from matplotlib.figure import Figure
 
 from rl.agents.dqn import DQNAgent
-from rl.policy import EpsGreedyQPolicy
+from rl.policy import EpsGreedyQPolicy, LinearAnnealedPolicy
 from rl.memory import SequentialMemory
-
-PLOT_LOSS_FORMAT = 'loss_epochs.%s'
 
 currentDirectory = os.getcwd().replace('\\', '/')
 
@@ -34,17 +32,31 @@ def plot_from_history(history: History,
     :param extension: (optional) the extension of the file
     :return: a Figure object containing the plot
     """
-    loss = history.history['episode_reward']
+    loss = np.array(history.history['episode_reward'])
+    epochs = np.arange(loss.size)
 
-    fig = plt.figure(figsize=(10, 10))
-    plt.xlabel("Epochs")
-    plt.ylabel("Loss")
-
+    # fig = plt.figure(figsize=(10, 10))
+    # plt.xlabel("Epochs")
+    # plt.ylabel("Loss")
+    # TODO: Clean this mess up lol
+    window = 50
+    title = 'Learning Curve'
+    weights = np.repeat(1.0, window) / window
+    y = np.convolve(loss, weights, 'valid')
+    x = epochs
     plt.plot(loss)
+
+    # Truncate x
+    x = x[len(x) - len(y):]
+    fig = plt.figure(title)
+    plt.plot(x, y)
+    plt.xlabel('Number of Timesteps')
+    plt.ylabel('Rewards')
+    plt.title(title + " Smoothed")
 
     if output_path:
         os.makedirs(output_path, exist_ok=True)
-        plt.savefig(os.path.join(output_path, PLOT_LOSS_FORMAT % extension))
+        plt.savefig(os.path.join(output_path, 'loss_epochs_smoothed.%s' % extension))
 
     plt.show()
 
@@ -59,18 +71,21 @@ model = Sequential()
 model.add(Flatten(input_shape=(1,) + env.observation_space.shape))
 model.add(Dense(len(env.VoltageMag)))
 model.add(Activation('relu'))
+# TODO: Add additional layers here
+model.add(Dense(len(env.VoltageMag)))
+model.add(Activation('relu'))
 model.add(Dense(env.action_space.n))
 model.add(Activation('linear'))
 print(model.summary())
 #
-policy = EpsGreedyQPolicy()
+policy = LinearAnnealedPolicy(EpsGreedyQPolicy(), attr='eps', value_max=0.1, value_min=.01, value_test=.05, nb_steps=10000)
 memory = SequentialMemory(limit=50000, window_length=1)
 dqn = DQNAgent(model=model, nb_actions=env.action_space.n, memory=memory, nb_steps_warmup=500,
                target_model_update=1e-3, policy=policy)
 dqn.compile(Adam(lr=1e-4), metrics=['mae'])
 #
 sys.stdout = open(currentDirectory + "/test4.txt", "w")
-history = dqn.fit(env, nb_steps=1000, verbose=2)
+history = dqn.fit(env, nb_steps=10000, verbose=2)
 sys.stdout.close()
 
 fig = plot_from_history(history, currentDirectory)
