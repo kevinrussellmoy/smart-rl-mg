@@ -12,6 +12,7 @@ from tensorflow.keras import Model, Sequential
 from tensorflow.keras.layers import Dense, Flatten, Reshape, Activation
 from tensorflow.keras.optimizers import Adam
 from keras.callbacks import History
+from keras.models import model_from_json
 from matplotlib.figure import Figure
 
 from rl.agents.dqn import DQNAgent
@@ -39,7 +40,7 @@ def plot_from_history(history: History,
     # plt.xlabel("Epochs")
     # plt.ylabel("Loss")
     # TODO: Clean this mess up lol
-    window = 50
+    window = 100
     title = 'Learning Curve'
     weights = np.repeat(1.0, window) / window
     y = np.convolve(loss, weights, 'valid')
@@ -78,14 +79,33 @@ model.add(Dense(env.action_space.n))
 model.add(Activation('linear'))
 print(model.summary())
 #
-policy = LinearAnnealedPolicy(EpsGreedyQPolicy(), attr='eps', value_max=0.1, value_min=.01, value_test=.05, nb_steps=10000)
+policy = LinearAnnealedPolicy(EpsGreedyQPolicy(), attr='eps', value_max=1, value_min=.2, value_test=.05, nb_steps=1000)
 memory = SequentialMemory(limit=50000, window_length=1)
-dqn = DQNAgent(model=model, nb_actions=env.action_space.n, memory=memory, nb_steps_warmup=500,
+dqn = DQNAgent(model=model, nb_actions=env.action_space.n, memory=memory, nb_steps_warmup=1000,
                target_model_update=1e-3, policy=policy)
-dqn.compile(Adam(lr=1e-4), metrics=['mae'])
+dqn.compile(Adam(lr=1e-1), metrics=['mae'])
 #
-sys.stdout = open(currentDirectory + "/test4.txt", "w")
+# sys.stdout = open(currentDirectory + "/test4.txt", "w")
 history = dqn.fit(env, nb_steps=10000, verbose=2)
-sys.stdout.close()
+# sys.stdout.close()
+
+# serialize model to JSON
+model_json = model.to_json()
+with open(currentDirectory + "/model.json", "w") as json_file:
+    json_file.write(model_json)
+# serialize weights to HDF5
+dqn.save_weights(currentDirectory + "/model.h5", overwrite=True)
+print("Saved model to disk")
+
+# Enjoy trained agent
+for i in range(50):
+    obs = env.reset()
+    obs_array = obs.reshape(1,1,len(env.VoltageMag))
+    print(dqn.model.predict(obs_array))
+    action = np.argmax(dqn.model.predict(obs_array))
+    print("action: ", action)
+    observs, rewards, dones, info = env.step(action)
+    print("reward: ", rewards)
+
 
 fig = plot_from_history(history, currentDirectory)
