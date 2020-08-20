@@ -3,7 +3,8 @@ import random
 import gym
 import os
 import matplotlib.pyplot as plt
-import tensorflow as tf
+import logging
+logging.getLogger("tensorflow").setLevel(logging.ERROR) # Set tensorflow print level
 
 from stable_baselines.common.env_checker import check_env
 from stable_baselines import DQN
@@ -14,10 +15,7 @@ from stable_baselines.results_plotter import load_results, ts2xy
 from stable_baselines.common.noise import AdaptiveParamNoiseSpec
 from stable_baselines.common.callbacks import BaseCallback
 
-currentDirectory = os.getcwd()
-
-# Set tensorflow print level
-tf.logging.set_verbosity(tf.logging.ERROR)
+currentDirectory = os.getcwd().replace('\\', '/')
 
 class SaveOnBestTrainingRewardCallback(BaseCallback):
     """
@@ -108,7 +106,7 @@ callback = SaveOnBestTrainingRewardCallback(check_freq=100, log_dir=currentDirec
 time_steps = 1e4
 model.learn(total_timesteps=int(time_steps))
 # Save the agent
-model.save(currentDirectory + "\\opendss_1e4")
+model.save(currentDirectory + "/opendss_1e4")
 
 results_plotter.plot_results([currentDirectory], time_steps, results_plotter.X_TIMESTEPS, "DQN IEEE 13-bus")
 plt.show()
@@ -116,7 +114,7 @@ plt.show()
 # del model  # delete trained model to demonstrate loading
 
 # Load the trained agent
-model = DQN.load(currentDirectory + "\\opendss_1e4", env)
+model = DQN.load(currentDirectory + "/opendss_1e4", env)
 
 # Evaluate the agent
 mean_reward, std_reward = evaluate_policy(model, model.get_env(), n_eval_episodes=10)
