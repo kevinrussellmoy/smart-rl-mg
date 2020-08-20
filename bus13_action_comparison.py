@@ -1,13 +1,23 @@
 # Comparison between RL control, optimal (known least penalty) control, and OpenDSS CapControl
 
-import win32com.client
-import pandas as pd
-import os
-import numpy as np
 from bus13_opt_action import *
 from bus13_state_reward import *
 
-currentDirectory = os.getcwd()
+import numpy as np
+
+import os
+import matplotlib.pyplot as plt
+import logging
+logging.getLogger("tensorflow").setLevel(logging.ERROR)  # Set tensorflow print level
+
+
+from keras.models import load_model
+
+from rl.agents.dqn import DQNAgent
+from rl.memory import SequentialMemory
+
+
+currentDirectory = os.getcwd().replace('\\', '/')
 
 # Instantiate the OpenDSS Object
 try:
@@ -32,34 +42,75 @@ DSSText.Command = "Disable regcontrol.Reg3"
 
 loadNames = np.array(DSSCircuit.Loads.AllNames)
 
-# Load in load configuration from testing database
-# TODO: Run all of this in a loop across all load configs in loadkW_test
+# For storing action/reward pairs
+labels = [np.array(['agent', 'agent', 'opt', 'opt', 'capctrl', 'capctrl']), np.array(['action', 'reward', 'action', 'reward', 'action', 'reward'])]
+act_reward_array = np.zeros((6, 1000))
+
+# Load in load configurations from testing database
 test_load_kw = pd.read_csv(currentDirectory + "\\loadkW_test.csv")
-loadKws = np.array(test_load_kw[str(1)])
 
-# Reset capacitors in between each test
-cap_control(0, DSSCircuit)
-observation = get_state(DSSCircuit)
+for i in np.arange(1,10):
+    loadKws = np.array(test_load_kw[str(i)])
 
-# ****************************************************
-# * Trained RL Agent Control
-# ****************************************************
-# TODO: Load in trained model; predict action from observation, with output of rl_action and rl_reward
+    for loadnum in range(np.size(loadNames)):
+        DSSCircuit.SetActiveElement("Load." + loadNames[loadnum])
+        # Set load with new loadKws
+        DSSCircuit.ActiveDSSElement.Properties("kW").Val = loadKws[loadnum]
 
+    # Reset capacitors in between each test
+    cap_control(0, DSSCircuit)
+    observation = get_state(DSSCircuit)
 
-# Reset capacitors in between each test
-cap_control(0, DSSCircuit)
-# ****************************************************
-# * Known Optimal Action
-# ****************************************************
-# Computes action and reward for each action and chooses action with highest reward
-opt_action, opt_reward = opt_control(loadNames, loadKws, DSSCircuit, DSSSolution)
+    # ****************************************************
+    # * Trained RL Agent Control
+    # ****************************************************
 
+    # load model
+    model = load_model(currentDirectory + "/keras-rl/saved_model")
+    # Configure DQN agent, including weights
+    memory = SequentialMemory(limit=50000, window_length=1)
+    dqn = DQNAgent(model=model, nb_actions=4, memory=memory)
+    print("Loaded model from disk")
 
-# Reset capacitors in between each test
-cap_control(0, DSSCircuit)
-# ****************************************************
-# * OpenDSS CapControl ACtion
-# ****************************************************
-# TODO: Action based on CapControl object in OpenDSS as configured in XXX.py
+    obs_array = observation.reshape(1, 1, len(observation))
+    print(dqn.model.predict(obs_array))
+    rl_action = np.argmax(dqn.model.predict(obs_array))
+    # action = 3
+    print("rl action: ", rl_action)
+    cap_control(rl_action, DSSCircuit)
+    DSSSolution.solve()
+    rl_reward = quad_reward(get_state(DSSCircuit))
+    print("rl reward: ", quad_reward(rl_reward))
+    print("\n")
 
+    act_reward_array[(0, i)] = rl_action
+    act_reward_array[(1, i)] = rl_reward
+
+    # Reset capacitors in between each test
+    cap_control(0, DSSCircuit)
+
+    # ****************************************************
+    # * Known Optimal Action
+    # ****************************************************
+    # Computes action and reward for each action and chooses action with highest reward
+    opt_action, opt_reward = opt_control(DSSCircuit, DSSSolution)
+
+    act_reward_array[(2, i)] = opt_action
+    act_reward_array[(3, i)] = opt_reward
+
+    # Reset capacitors in between each test
+    cap_control(0, DSSCircuit)
+
+    # ****************************************************
+    # * OpenDSS CapControl Action
+    # ****************************************************
+    # TODO: Action based on CapControl object in OpenDSS as configured in XXX.py
+    capctrl_action = 0
+    capctrl_reward = -200
+
+    act_reward_array[(4, i)] = capctrl_action
+    act_reward_array[(5, i)] = -200
+
+act_reward_df = pd.DataFrame(act_reward_array, index = labels)
+act_reward_df.to_csv(currentDirectory + "/action_reward_comparison.csv")
+# TODO: Capture all action/reward pairs in Dataframe

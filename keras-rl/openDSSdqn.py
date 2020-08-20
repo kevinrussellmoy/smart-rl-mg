@@ -89,12 +89,9 @@ dqn.compile(Adam(lr=1e-1), metrics=['mae'])
 history = dqn.fit(env, nb_steps=10000, verbose=2)
 # sys.stdout.close()
 
-# serialize model to JSON
-model_json = model.to_json()
-with open(currentDirectory + "/model.json", "w") as json_file:
-    json_file.write(model_json)
-# serialize weights to HDF5
-dqn.save_weights(currentDirectory + "/model.h5", overwrite=True)
+# Save model
+dqn.model.save(currentDirectory + "/saved_model")
+
 print("Saved model to disk")
 
 # Enjoy trained agent
