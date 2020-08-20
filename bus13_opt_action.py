@@ -45,11 +45,7 @@ def cap_control(action, DSSCircuit):
         print("Invalid action " + str(action) + ", action in range [0 3] expected")
 
 
-def opt_control(loadNames, loadKws, DSSCircuit, DSSSolution):
-    for loadnum in range(np.size(loadNames)):
-        DSSCircuit.SetActiveElement("Load." + loadNames[loadnum])
-        # Set load with new loadKws
-        DSSCircuit.ActiveDSSElement.Properties("kW").Val = loadKws[loadnum]
+def opt_control(DSSCircuit, DSSSolution):
 
     # Get action with lowest reward
     opt_reward = -np.Inf
@@ -64,6 +60,7 @@ def opt_control(loadNames, loadKws, DSSCircuit, DSSSolution):
         if reward > opt_reward:
             opt_action = action
             opt_reward = reward
-    print("opt action = ", opt_action)
+    print("\nopt action = ", opt_action)
     print("opt reward = ", opt_reward)
+
     return opt_action, opt_reward
