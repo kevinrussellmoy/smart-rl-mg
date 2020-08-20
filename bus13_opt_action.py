@@ -10,7 +10,7 @@ from bus13_state_reward import *
 TOTAL_ACTIONS = 4
 
 
-def cap_control(action, DSSCircuit):
+def action_to_cap_control(action, DSSCircuit):
     # Currently, only takes in IEEE 13 bus OpenDSS as input
     # action: Range of [0 3] of actions from RL agent
     # DSSCircuit: object of type DSSObj.ActiveCircuit (COM interface for OpenDSS Circuit)
@@ -51,7 +51,7 @@ def opt_control(DSSCircuit, DSSSolution):
     opt_reward = -np.Inf
     opt_action = -np.Inf
     for action in range(TOTAL_ACTIONS):
-        cap_control(action, DSSCircuit)
+        action_to_cap_control(action, DSSCircuit)
         DSSSolution.solve()
         observation = get_state(DSSCircuit)
         reward = quad_reward(observation)
