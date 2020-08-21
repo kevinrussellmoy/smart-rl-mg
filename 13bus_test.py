@@ -1,5 +1,5 @@
 # Kevin Moy, 7/24/2020
-# Modified from an example in the OpenDSS Python documentation
+# Modified from an example in the OpenDSS Python documentation (OpenDSSPrimer.pdf)
 # Sandbox file to test and demonstrate OpenDSS Python COM interface
 # Uses IEEE 13-bus system to scale loads, demonstrate voltage change when loads are disconnected
 
@@ -115,12 +115,12 @@ DSSText.Command = "Set Capmarkersize=3"
 # Plot!
 DSSText.Command = "Plot circuit voltage dots=y labels=y"
 
-# ----- EXPORTING RESULTS ----- #
-# Export voltage to a csv file in a particular directory
-DSSText.Command = r"Set datapath = 'C:\Users\kmoy1\PycharmProjects\smart-rl-mg'"  # Set to your own filepath!
-DSSText.Command = "Export Voltages"
-Filename = DSSText.Result
-print("File saved to: " + Filename)
-
-VoltageMags = DSSCircuit.AllBusVmagPu
-# print(VoltageMags)
+# # ----- EXPORTING RESULTS ----- #
+# # Export voltage to a csv file in a particular directory
+# DSSText.Command = r"Set datapath = 'C:\Users\kmoy1\PycharmProjects\smart-rl-mg'"  # Set to your own filepath!
+# DSSText.Command = "Export Voltages"
+# Filename = DSSText.Result
+# print("File saved to: " + Filename)
+#
+# VoltageMags = DSSCircuit.AllBusVmagPu
+# # print(VoltageMags)
