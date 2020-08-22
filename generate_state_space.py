@@ -8,11 +8,11 @@ import os
 import numpy as np
 
 MAX_NUM_CONFIG = 20
-MIN_BUS_VOLT = 0.8
-MAX_BUS_VOLT = 1.2
+MIN_BUS_VOLT = 0.9
+MAX_BUS_VOLT = 1.1
 
 
-def load_states(loadNames, DSSCircuit, DSSSolution, min_load=0.5, max_load=3):
+def load_states(loadNames, DSSCircuit, DSSSolution, min_load=0.1, max_load=3):
     # Currently, only takes in IEEE 13 bus OpenDSS as input
     # loadNames: vector of bus names for each load
     # DSSCircuit: object of type DSSObj.ActiveCircuit (COM interface for OpenDSS Circuit)
@@ -67,8 +67,14 @@ def load_states(loadNames, DSSCircuit, DSSSolution, min_load=0.5, max_load=3):
         maxVCapOn = max(VoltageMagCapOn)
         minVCapOn = min(VoltageMagCapOn)
 
-        if (max(maxVCapOff, maxVCapOn, minVCapOff, minVCapOn) <= MAX_BUS_VOLT) & \
-                (min(maxVCapOff, maxVCapOn, minVCapOff, minVCapOn) >= MIN_BUS_VOLT):
+        if (min(maxVCapOff, maxVCapOn) > MAX_BUS_VOLT) & \
+                (max(minVCapOff, minVCapOn) < MIN_BUS_VOLT):
+            print("Voltages not within acceptable range [" + str(MIN_BUS_VOLT) + ", " + str(MAX_BUS_VOLT) +
+                  "] p.u., not saving")
+            print("Min-Max voltage: ", min(maxVCapOff, maxVCapOn, minVCapOff, minVCapOn))
+            print("Max-min voltage: ", max(maxVCapOff, maxVCapOn, minVCapOff, minVCapOn))
+            scale_down(DSSCircuit, randScale)
+        else:
             # print("Voltages within acceptable range")
             loadKws = []
             for loadnum in range(np.size(loadNames)):
@@ -78,10 +84,6 @@ def load_states(loadNames, DSSCircuit, DSSSolution, min_load=0.5, max_load=3):
                 loadKws.append(kwLoad)
             scale_down(DSSCircuit, randScale)
             return np.array(loadKws)
-        else:
-            # print("Voltages not within acceptable range [" + str(MIN_BUS_VOLT) + ", " + str(MAX_BUS_VOLT) +
-            #       "] p.u., not saving")
-            scale_down(DSSCircuit, randScale)
 
 
 def scale_up(DSSCircuit, randScale):

@@ -74,7 +74,7 @@ labels = [np.array(['agent', 'agent', 'opt', 'opt', 'capctrl', 'capctrl']), np.a
 act_reward_array = np.zeros((6, 1000))
 
 # Load in load configurations from testing database
-test_load_kw = pd.read_csv(currentDirectory + "\\loadkW_test.csv")
+test_load_kw = pd.read_csv(currentDirectory + "\\loadkW_train.csv")
 
 for i in np.arange(1,1000):
     loadKws = np.array(test_load_kw[str(i)])
