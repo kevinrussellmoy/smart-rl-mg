@@ -9,14 +9,13 @@ import numpy as np
 import os
 import matplotlib.pyplot as plt
 import logging
-logging.getLogger("tensorflow").setLevel(logging.ERROR)  # Set tensorflow print level
 
+logging.getLogger("tensorflow").setLevel(logging.ERROR)  # Set tensorflow print level
 
 from keras.models import load_model
 
 from rl.agents.dqn import DQNAgent
 from rl.memory import SequentialMemory
-
 
 currentDirectory = os.getcwd().replace('\\', '/')
 
@@ -70,13 +69,14 @@ dqn = DQNAgent(model=model, nb_actions=4, memory=memory)
 print("Loaded model from disk")
 
 # For storing action/reward pairs
-labels = [np.array(['agent', 'agent', 'opt', 'opt', 'capctrl', 'capctrl']), np.array(['action', 'reward', 'action', 'reward', 'action', 'reward'])]
+labels = [np.array(['agent', 'agent', 'opt', 'opt', 'capctrl', 'capctrl']),
+          np.array(['action', 'reward', 'action', 'reward', 'action', 'reward'])]
 act_reward_array = np.zeros((6, 1000))
 
 # Load in load configurations from testing database
 test_load_kw = pd.read_csv(currentDirectory + "\\loadkW_test.csv")
 
-for i in np.arange(1,1000):
+for i in np.arange(1, 1000):
     loadKws = np.array(test_load_kw[str(i)])
 
     for loadnum in range(np.size(loadNames)):
@@ -135,5 +135,5 @@ for i in np.arange(1,1000):
     act_reward_array[(4, i)] = capctrl_action
     act_reward_array[(5, i)] = capctrl_reward
 
-act_reward_df = pd.DataFrame(act_reward_array, index = labels)
+act_reward_df = pd.DataFrame(act_reward_array, index=labels)
 act_reward_df.to_csv(currentDirectory + "/action_reward_comparison.csv")
