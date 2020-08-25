@@ -12,7 +12,7 @@ from bus13_state_reward import *
 
 currentDirectory = os.getcwd().replace('\\', '/')
 
-MAX_NUM_CONFIG = 10000
+MAX_NUM_CONFIG = 1000
 
 # Instantiate the OpenDSS Object
 try:
@@ -50,5 +50,5 @@ while numConfig < MAX_NUM_CONFIG:
 print("\nLoad configurations complete")
 print("Total iterations to reach " + str(MAX_NUM_CONFIG) + ": " + str(iters))
 loadKwdf.set_index(0, inplace=True)
-loadKwdf.to_csv(currentDirectory + "/loadkW_train.csv", index_label='Load Name')
-print("\nsaved to "+ currentDirectory + "/loadkW_train.csv")
+loadKwdf.to_csv(currentDirectory + "/loadkW_test.csv", index_label='Load Name')
+print("\nsaved to "+ currentDirectory + "/loadkW_test.csv")
