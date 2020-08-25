@@ -68,13 +68,17 @@ memory = SequentialMemory(limit=50000, window_length=1)
 dqn = DQNAgent(model=model, nb_actions=4, memory=memory)
 print("Loaded model from disk")
 
+# load Supervised Learning model
+nn_model = load_model(currentDirectory + "/supervised-learning")
+print("Loaded supervised learning model from disk")
+
 # For storing action/reward pairs
-labels = [np.array(['agent', 'agent', 'opt', 'opt', 'capctrl', 'capctrl']),
-          np.array(['action', 'reward', 'action', 'reward', 'action', 'reward'])]
-act_reward_array = np.zeros((6, 1000))
+labels = [np.array(['agent', 'agent', 'nn_supervised', 'nn_supervised', 'opt', 'opt', 'capctrl', 'capctrl']),
+          np.array(['action', 'reward', 'action', 'reward', 'action', 'reward', 'action', 'reward'])]
+act_reward_array = np.zeros((8, 1000))
 
 # Load in load configurations from testing database
-test_load_kw = pd.read_csv(currentDirectory + "\\loadkW_train.csv")
+test_load_kw = pd.read_csv(currentDirectory + "/loadkW_test.csv")
 
 for i in np.arange(1, 1000):
     loadKws = np.array(test_load_kw[str(i)])
@@ -109,13 +113,34 @@ for i in np.arange(1, 1000):
     action_to_cap_control(0, DSSCircuit)
 
     # ****************************************************
+    # * Trained Supervised Learning NN Control
+    # ****************************************************
+
+    obs_array = observation.reshape(1, 1, len(observation))
+    print(nn_model.predict(obs_array))
+    nn_action = np.argmax(nn_model.predict(obs_array))
+    # action = 3
+    print("supervised learning action: ", nn_action)
+    action_to_cap_control(nn_action, DSSCircuit)
+    DSSSolution.solve()
+    nn_reward = quad_reward(get_state(DSSCircuit))
+    print("supervised learning reward: ", nn_reward)
+
+    act_reward_array[(2, i)] = nn_action
+    act_reward_array[(3, i)] = nn_reward
+
+    # Reset capacitors in between each test
+    action_to_cap_control(0, DSSCircuit)
+
+
+    # ****************************************************
     # * Known Optimal Action
     # ****************************************************
     # Computes action and reward for each action and chooses action with highest reward
     opt_action, opt_reward = opt_control(DSSCircuit, DSSSolution)
 
-    act_reward_array[(2, i)] = opt_action
-    act_reward_array[(3, i)] = opt_reward
+    act_reward_array[(4, i)] = opt_action
+    act_reward_array[(5, i)] = opt_reward
 
     # Reset capacitors in between each test
     action_to_cap_control(0, DSSCircuit)
@@ -132,8 +157,8 @@ for i in np.arange(1, 1000):
     # DSSSolution.solve()
     # capctrl_reward = quad_reward(get_state(DSSCircuit))
 
-    act_reward_array[(4, i)] = capctrl_action
-    act_reward_array[(5, i)] = capctrl_reward
+    act_reward_array[(6, i)] = capctrl_action
+    act_reward_array[(7, i)] = capctrl_reward
 
 act_reward_df = pd.DataFrame(act_reward_array, index=labels)
 act_reward_df.to_csv(currentDirectory + "/action_reward_comparison.csv")

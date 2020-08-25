@@ -30,8 +30,6 @@ print('Number of actions: {}'.format(env.action_space.n))
 
 model = keras.Sequential([keras.layers.Flatten(input_shape=(1,) + env.observation_space.shape),
                          keras.layers.Dense(len(env.VoltageMag), activation='relu'),
-                         keras.layers.Dense(len(env.VoltageMag), activation='relu'),
-                         keras.layers.Dense(len(env.VoltageMag), activation='relu'),
                          keras.layers.Dense(4)])
 
 # model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
@@ -39,6 +37,23 @@ model.compile(optimizer='adam', loss=tf.keras.losses.SparseCategoricalCrossentro
               metrics=['accuracy'])
 
 # model.fit(voltages, action_onehot, epochs=100)
-model.fit(voltages, action, epochs=100)
+model.fit(voltages, action, epochs=50)
 
-test_loss = test_acc = model.evaluate(voltages, action, verbose=2)
+test_loss, test_acc = model.evaluate(voltages, action, verbose=2)
+
+probability_model = tf.keras.Sequential([model, tf.keras.layers.Softmax()])
+
+# Save model
+probability_model.save(currentDirectory)
+
+print("Saved model to disk")
+
+predictions = probability_model.predict(voltages[:,:])
+count = 0
+for i in range(len(action)):
+    prediction = np.argmax(predictions[i])
+    print(prediction)
+    if prediction == action[i]:
+        count +=1
+
+accuracy = count/len(action)
