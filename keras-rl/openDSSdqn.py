@@ -79,11 +79,12 @@ model.add(Dense(env.action_space.n))
 model.add(Activation('linear'))
 print(model.summary())
 #
-policy = LinearAnnealedPolicy(EpsGreedyQPolicy(), attr='eps', value_max=1, value_min=.2, value_test=.05, nb_steps=1000)
+policy = LinearAnnealedPolicy(EpsGreedyQPolicy(), attr='eps', value_max=1, value_min=1e-2, value_test=.05, nb_steps=20000)
 memory = SequentialMemory(limit=50000, window_length=1)
 dqn = DQNAgent(model=model, nb_actions=env.action_space.n, memory=memory, nb_steps_warmup=1000,
                target_model_update=1e-3, policy=policy)
-dqn.compile(Adam(lr=1e-3), metrics=['mae'])
+
+dqn.compile(Adam(lr=1e-1), metrics=['mae'])
 #
 # sys.stdout = open(currentDirectory + "/test4.txt", "w")
 history = dqn.fit(env, nb_steps=20000, verbose=2)
