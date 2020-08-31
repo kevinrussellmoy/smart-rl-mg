@@ -12,7 +12,11 @@ import logging
 
 logging.getLogger("tensorflow").setLevel(logging.ERROR)  # Set tensorflow print level
 
-from keras.models import load_model
+# from keras.models import load_model
+# Import if using stable-baselines/tensorflow 1.xx:
+from stable_baselines import DQN
+import gym
+
 
 from rl.agents.dqn import DQNAgent
 from rl.memory import SequentialMemory
@@ -62,15 +66,17 @@ DSSText.Command = "~ ctratio=1 ptphase=MIN ONsetting=0.90 OFFsetting=1.10 Delay=
 DSSText.Command = "Disable CapControl.CtrlCap2"
 
 # load DQN agent model
-model = load_model(currentDirectory + "/keras-rl/saved_model")
-# Configure DQN agent, including weights
-memory = SequentialMemory(limit=50000, window_length=1)
-dqn = DQNAgent(model=model, nb_actions=4, memory=memory)
-print("Loaded model from disk")
+# model = load_model(currentDirectory + "/keras-rl/saved_model")
+# # Configure DQN agent, including weights
+# memory = SequentialMemory(limit=50000, window_length=1)
+# dqn = DQNAgent(model=model, nb_actions=4, memory=memory)
+# print("Loaded model from disk")
+env = gym.make('gym_openDSS:openDSS-v0')
+dqn = DQN.load(currentDirectory + "/stable-baselines/opendss_1e4_new_reward", env)
 
-# load Supervised Learning model
-nn_model = load_model(currentDirectory + "/supervised-learning")
-print("Loaded supervised learning model from disk")
+# # load Supervised Learning model
+# nn_model = load_model(currentDirectory + "/supervised-learning")
+# print("Loaded supervised learning model from disk")
 
 # For storing action/reward pairs
 labels = [np.array(['agent', 'agent', 'nn_supervised', 'nn_supervised', 'opt', 'opt', 'capctrl', 'capctrl']),
@@ -96,9 +102,10 @@ for i in np.arange(1, 1000):
     # * Trained RL Agent Control
     # ****************************************************
 
-    obs_array = observation.reshape(1, 1, len(observation))
-    print(dqn.model.predict(obs_array))
-    rl_action = np.argmax(dqn.model.predict(obs_array))
+    obs_array = observation
+    pred = dqn.predict(obs_array)
+    print(pred)
+    rl_action = pred[0]
     # action = 3
     print("rl action: ", rl_action)
     action_to_cap_control(rl_action, DSSCircuit)
@@ -117,9 +124,9 @@ for i in np.arange(1, 1000):
     # ****************************************************
 
     obs_array = observation.reshape(1, 1, len(observation))
-    print(nn_model.predict(obs_array))
-    nn_action = np.argmax(nn_model.predict(obs_array))
-    # action = 3
+    # print(nn_model.predict(obs_array))
+    # nn_action = np.argmax(nn_model.predict(obs_array))
+    nn_action = 1
     print("supervised learning action: ", nn_action)
     action_to_cap_control(nn_action, DSSCircuit)
     DSSSolution.solve()
